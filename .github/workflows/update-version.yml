@@ -1,0 +1,28 @@
+name: Update Version in TTS App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          repository: hkilang/TTS
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Update Version in src/db/version.ts
+        run: |
+          SHA_SHORT=$(git rev-parse --short "$GITHUB_SHA")
+          sed -i "s/CURRENT_AUDIO_VERSION = \"[^\"]*\"/CURRENT_AUDIO_VERSION = \"$SHA_SHORT\"/" src/db/version.ts
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add src/db/version.ts
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Update Audio Version to $SHA_SHORT"
+            git push origin main
+          fi
